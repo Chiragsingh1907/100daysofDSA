@@ -1,85 +1,74 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
+#include <string.h>
 
-// Node structure
-typedef struct Node {
-    int data;
-    struct Node *next;
-    struct Node *prev;
-} Node;
+#define MAX 1000
 
-// Deque structure
-typedef struct {
-    Node *front;
-    Node *rear;
-    int size;
-} Deque;
+int heap[MAX];
+int size = 0;
 
-// Initialize Deque
-void initDeque(Deque *dq) {
-    dq->front = dq->rear = NULL;
-    dq->size = 0;
+void swap(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
 }
 
-// O(1) Push Front
-void push_front(Deque *dq, int value) {
-    Node *newNode = (Node *)malloc(sizeof(Node));
-    newNode->data = value;
-    newNode->prev = NULL;
-    newNode->next = dq->front;
+// O(log n) - Restore heap property upwards
+void insert(int val) {
+    if (size >= MAX) return;
+    heap[size] = val;
+    int curr = size;
+    size++;
 
-    if (dq->front == NULL)
-        dq->rear = newNode;
-    else
-        dq->front->prev = newNode;
-
-    dq->front = newNode;
-    dq->size++;
+    while (curr > 0 && heap[(curr - 1) / 2] > heap[curr]) {
+        swap(&heap[(curr - 1) / 2], &heap[curr]);
+        curr = (curr - 1) / 2;
+    }
 }
 
-// O(1) Push Back
-void push_back(Deque *dq, int value) {
-    Node *newNode = (Node *)malloc(sizeof(Node));
-    newNode->data = value;
-    newNode->next = NULL;
-    newNode->prev = dq->rear;
+// O(log n) - Restore heap property downwards
+void delete() {
+    if (size == 0) {
+        printf("-1\n");
+        return;
+    }
+    printf("%d\n", heap[0]);
+    heap[0] = heap[size - 1];
+    size--;
 
-    if (dq->rear == NULL)
-        dq->front = newNode;
-    else
-        dq->rear->next = newNode;
-
-    dq->rear = newNode;
-    dq->size++;
+    int curr = 0;
+    while (2 * curr + 1 < size) {
+        int smallest = 2 * curr + 1;
+        int right = 2 * curr + 2;
+        if (right < size && heap[right] < heap[smallest]) {
+            smallest = right;
+        }
+        if (heap[curr] <= heap[smallest]) break;
+        swap(&heap[curr], &heap[smallest]);
+        curr = smallest;
+    }
 }
 
-// O(1) Pop Front
-void pop_front(Deque *dq) {
-    if (dq->front == NULL) return;
-    Node *temp = dq->front;
-    dq->front = dq->front->next;
-
-    if (dq->front == NULL)
-        dq->rear = NULL;
-    else
-        dq->front->prev = NULL;
-
-    free(temp);
-    dq->size--;
+void peek() {
+    if (size == 0) printf("-1\n");
+    else printf("%d\n", heap[0]);
 }
 
-// O(1) Pop Back
-void pop_back(Deque *dq) {
-    if (dq->rear == NULL) return;
-    Node *temp = dq->rear;
-    dq->rear = dq->rear->prev;
+int main() {
+    int n;
+    if (scanf("%d", &n) != 1) return 0;
 
-    if (dq->rear == NULL)
-        dq->front = NULL;
-    else
-        dq->rear->next = NULL;
-
-    free(temp);
-    dq->size--;
+    char op[10];
+    int val;
+    for (int i = 0; i < n; i++) {
+        scanf("%s", op);
+        if (strcmp(op, "insert") == 0) {
+            scanf("%d", &val);
+            insert(val);
+        } else if (strcmp(op, "delete") == 0) {
+            delete();
+        } else if (strcmp(op, "peek") == 0) {
+            peek();
+        }
+    }
+    return 0;
 }
